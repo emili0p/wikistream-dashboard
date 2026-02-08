@@ -51,3 +51,10 @@ def latest_events():
         .limit(10)
     )
     return jsonify(eventos)
+
+
+@app.route("/api/bd_metrics")
+def bd_metrics():
+    stats = db.command("collstats", coleccion.name)
+
+    return jsonify({"size_kb": round(stats["storageSize"] / 1024, 2)})

@@ -76,6 +76,10 @@
     <h2>Base de datos</h2>
     <p>MongoDB</p>
   </div>
+  <div class="card">
+  <h2>Tamaño BD (KB)</h2>
+  <p id="db-size">—</p>
+  </div>
 </div>
 
 <div class="chart-container">
@@ -157,6 +161,15 @@
         </tr>`;
     });
   }
+// metricas 
+  async function updateDbSize() {
+    const res = await fetch("/api/bd_metrics");
+    const data = await res.json();
+    document.getElementById("db-size").textContent = data.size_kb + " KB";
+  }
+
+  updateDbSize();
+  setInterval(updateDbSize, 1000); // 10 segundos 
 
   updateTable();
   setInterval(updateTable, 3000);
