@@ -78,6 +78,7 @@ def consume_events():
         print("[DEBUG] Error en la conexion:", e)
 
 
+# for _ in range(3):
 thread = threading.Thread(target=consume_events, daemon=True)
 thread.start()
 # hilo para correr la ingesta de datos
