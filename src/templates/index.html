@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>LiveData – Wikimedia Stream</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- script aburrido para graficar  -->
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 20px;
+    }
+
+    h1 { margin-bottom: 5px; }
+    .subtitle { color: #94a3b8; margin-bottom: 20px; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: #020617;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 0 0 1px #1e293b;
+    }
+
+    .card h2 { font-size: 14px; color: #94a3b8; margin: 0; }
+    .card p { font-size: 28px; margin: 5px 0 0; font-weight: bold; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #020617;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 30px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #1e293b;
+      font-size: 14px;
+    }
+
+    th { color: #94a3b8; }
+    .chart-container {
+      margin-top: 30px;
+      background: #020617;
+      padding: 20px;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1> LiveData – Wikimedia Stream data</h1>
+<div class="subtitle">Ingesta en tiempo real</div>
+
+<div class="cards">
+  <div class="card">
+    <h2>Total de eventos</h2>
+    <p id="total">—</p>
+  </div>
+  <div class="card">
+    <h2>Fuente</h2>
+    <p>Wikimedia</p>
+  </div>
+  <div class="card">
+    <h2>Base de datos</h2>
+    <p>MongoDB</p>
+  </div>
+</div>
+
+<div class="chart-container">
+  <canvas id="eventsChart"></canvas>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Título</th>
+      <th>Usuario</th>
+      <th>Wiki</th>
+      <th>Bot</th>
+      <th>Timestamp</th>
+    </tr>
+  </thead>
+  <tbody id="events-body"></tbody>
+</table>
+
+<script>
+      // contador obtenida de las rutas flask
+  async function updateTotal() {
+    const res = await fetch("/api/total");
+    const data = await res.json();
+    document.getElementById("total").textContent = data.total;
+  }
+
+  setInterval(updateTotal, 2000);
+  updateTotal();
+
+  const ctx = document.getElementById("eventsChart");
+  const chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [{
+        label: "Eventos / cada 10 s",
+        data: [],
+        borderColor: "#38bdf8",
+        tension: 0.3
+      }]
+    },
+    options: { animation: false }
+  });
+// actualizar
+  async function updateChart() {
+    const res = await fetch("/api/events_last");
+    const data = await res.json();
+
+    const label = new Date(data.timestamp * 1000).toLocaleTimeString();
+    chart.data.labels.push(label);
+    chart.data.datasets[0].data.push(data.count);
+
+    if (chart.data.labels.length > 20) {
+      chart.data.labels.shift();
+      chart.data.datasets[0].data.shift();
+    }
+    chart.update();
+  }
+// actualizar cada 2 segundos
+  setInterval(updateChart, 2000);
+
+  // tabla de eventos de abajo 
+  async function updateTable() {
+    const res = await fetch("/api/latest_events");
+    const data = await res.json();
+
+    const body = document.getElementById("events-body");
+    body.innerHTML = "";
+
+    data.forEach(e => {
+      body.innerHTML += `
+        <tr>
+          <td>${e.title || "-"}</td>
+          <td>${e.user || "-"}</td>
+          <td>${e.wiki || "-"}</td>
+          <td>${e.bot}</td>
+          <td>${new Date(e.timestamp * 1000).toLocaleTimeString()}</td>
+        </tr>`;
+    });
+  }
+
+  updateTable();
+  setInterval(updateTable, 3000);
+</script>
+
+</body>
+</html>
+
