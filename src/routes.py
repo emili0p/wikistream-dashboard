@@ -58,3 +58,10 @@ def bd_metrics():
     stats = db.command("collstats", coleccion.name)
 
     return jsonify({"size_kb": round(stats["storageSize"] / 1024, 2)})
+
+
+@app.route("/api/bd_metrics")
+def kb_sec():
+    stats = db.command("collstats", coleccion.name)
+
+    return jsonify({"size_kb": round(stats["storageSize"] / 1024, 2)})
