@@ -8,6 +8,24 @@ app = Flask(__name__, template_folder="templates")
 client = MongoClient(MONGO_URI)
 db = client[APP_DB]
 coleccion = db[APP_COLLECTION]
+# consultas a mongo
+pipeline_top_users = [
+    {
+        "$group": {
+            "_id": "$user",
+            "total_changes": {"$sum": 1},
+            "bot_changes": {"$sum": {"$cond": [{"$eq": ["$bot", True]}, 1, 0]}},
+            "human_changes": {"$sum": {"$cond": [{"$eq": ["$bot", False]}, 1, 0]}},
+        }
+    },
+    {"$sort": {"total_changes": -1}},
+    {"$limit": 10},
+]
+
+pipeline_by_type = [
+    {"$group": {"_id": "$type", "count": {"$sum": 1}}},
+    {"$sort": {"count": -1}},
+]
 
 
 @app.route("/")
@@ -65,3 +83,21 @@ def kb_sec():
     stats = db.command("collstats", coleccion.name)
 
     return jsonify({"size_kb": round(stats["storageSize"] / 1024, 2)})
+
+
+@app.route("/api/top_usuarios")
+def top_usuarios():
+    start = time.time()
+    data = list(coleccion.aggregate(pipeline_top_users))
+    elapsed = round(time.time() - start, 4)
+
+    return jsonify({"source": "mongodb", "query_time_sec": elapsed, "data": data})
+
+
+@app.route("/api/type_edit")
+def edit_types():
+    start = time.time()
+    data = list(coleccion.aggregate(pipeline_by_type))
+    elapsed = round(time.time() - start, 4)
+
+    return jsonify({"source": "mongodb", "query_time_sec": elapsed, "data": data})

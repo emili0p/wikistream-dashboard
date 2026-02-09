@@ -50,9 +50,9 @@
 
     th { color: #94a3b8; }
     .chart-container {
-      margin-top: 30px;
+      margin-top: 25px;
       background: #020617;
-      padding: 20px;
+      padding: 15px;
       border-radius: 12px;
     }
   </style>
@@ -80,11 +80,27 @@
   <h2>Tamaño BD (KB)</h2>
   <p id="db-size">—</p>
   </div>
+    <div class="card">
+  <h2>Ediciones humanas</h2>
+  <p id="human-count">—</p>
+  </div>
+  <div class="card">
+  <h2>Ediciones por bots</h2>
+  <p id="bot-count">—</p>
+  </div>
 </div>
 
 <div class="chart-container">
   <canvas id="eventsChart"></canvas>
 </div>
+<div class="chart-container">
+  <canvas id="editTypeChart"></canvas>
+</div>
+
+<div class="chart-container">
+  <canvas id="botHumanChart"></canvas>
+</div>
+
 
 <table>
   <thead>
@@ -173,6 +189,68 @@
 
   updateTable();
   setInterval(updateTable, 3000);
+  const editCtx = document.getElementById("editTypeChart");
+  const editChart = new Chart(editCtx, {
+    type: "bar",
+    data: {
+      labels: [],
+      datasets: [{
+        label: "Tipos de edición",
+        data: [],
+        backgroundColor: "#22c55e"
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  async function updateEditTypes() {
+    const res = await fetch("/api/type_edit");
+    const json = await res.json();
+
+    editChart.data.labels = json.data.map(e => e._id || "unknown");
+    editChart.data.datasets[0].data = json.data.map(e => e.count);
+    editChart.update();
+}
+
+updateEditTypes();
+setInterval(updateEditTypes, 5000);
+
+  const bhCtx = document.getElementById("botHumanChart");
+  const bhChart = new Chart(bhCtx, {
+    type: "pie",
+    data: {
+      labels: ["Humanos", "Bots"],
+      datasets: [{
+        data: [0, 0],
+        backgroundColor: ["#38bdf8", "#f97316"]
+      }]
+    }
+  });
+
+async function updateBotHuman() {
+  const res = await fetch("/api/top_usuarios");
+  const json = await res.json();
+
+  let humans = 0;
+  let bots = 0;
+
+  json.data.forEach(u => {
+    humans += u.human_changes;
+    bots += u.bot_changes;
+  });
+
+  bhChart.data.datasets[0].data = [humans, bots];
+  bhChart.update();
+
+  document.getElementById("human-count").textContent = humans;
+  document.getElementById("bot-count").textContent = bots;
+}
+
+updateBotHuman();
+setInterval(updateBotHuman, 5000);
+
 </script>
 
 </body>
