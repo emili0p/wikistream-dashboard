@@ -101,6 +101,22 @@
   <canvas id="botHumanChart"></canvas>
 </div>
 
+<div class="chart-container">
+  <h2 style="margin-bottom:15px;">Top Usuarios</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Total Ediciones</th>
+        <th>Humanas</th>
+        <th>Bots</th>
+      </tr>
+    </thead>
+    <tbody id="top-users-body"></tbody>
+  </table>
+</div>
+
+
 
 <table>
   <thead>
@@ -250,6 +266,33 @@ async function updateBotHuman() {
 
 updateBotHuman();
 setInterval(updateBotHuman, 5000);
+
+
+
+async function updateTopUsers() {
+  const res = await fetch("/api/top_usuarios");
+  const json = await res.json();
+
+  const body = document.getElementById("top-users-body");
+  body.innerHTML = "";
+
+  json.data.forEach(user => {
+    const total = user.human_changes + user.bot_changes;
+
+    body.innerHTML += `
+      <tr>
+        <td>${user._id || "Anónimo"}</td>
+        <td>${total}</td>
+        <td>${user.human_changes}</td>
+        <td>${user.bot_changes}</td>
+      </tr>
+    `;
+  });
+}
+updateTopUsers();
+setInterval(updateTopUsers, 5000);
+updateTopUsers();
+setInterval(updateTopUsers, 5000);
 
 </script>
 
