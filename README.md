@@ -42,8 +42,8 @@ Crear/seleccionar base:
 
 use prueba_db
 
-
-Crear colección (opcional, se crea sola al insertar datos):
+```
+# Crear colección (opcional, se crea sola al insertar datos):
 
 db.eventos.insertOne({ init: true })
 
@@ -53,24 +53,26 @@ Verificar bases existentes:
 show dbs
 
 
-Crear entorno virtual
-py thon -m venv venv
+# Crear entorno virtual
+```bash
+python -m venv venv
 source venv/bin/activate
+```
 
-
+ 
 En Windows:
+
+``` bash
 
 venv\Scripts\activate
 
-
-
-
-instalar dependencias
-
+# instalar dependencias
+```
 pip install -r requirements.txt
+```
 
-
-Ejecutar el servidor HTTP
+# Ejecutar el servidor HTTP
+```bash 
 python3 src/app.py
-
+```
 Estara corriendo en el puerto 5000 
