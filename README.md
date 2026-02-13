@@ -63,16 +63,18 @@ source venv/bin/activate
 En Windows:
 
 ``` bash
-
 venv\Scripts\activate
+``` 
 
 # instalar dependencias
-```
+```bash 
+
 pip install -r requirements.txt
-```
+``` 
 
 # Ejecutar el servidor HTTP
 ```bash 
+
 python3 src/app.py
 ```
 Estara corriendo en el puerto 5000 
